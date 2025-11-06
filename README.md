@@ -7,3 +7,4 @@
 ![lt-text](https://github.com/loegaire/ArchLinux_Customized_Desktop/blob/master/20231231_15h08m31s_grim.png)
 # Niri_Config
 # Niri_Config
+# Niri_Config
