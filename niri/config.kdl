@@ -103,6 +103,16 @@ input {
 // Settings that influence how windows are positioned and sized.
 // Find more information on the wiki:
 // https://yalter.github.io/niri/Configuration:-Layout
+environment {
+    GTK_THEME "Thinh-Swiss-Dark"
+    QT_QPA_PLATFORM "wayland;xcb"
+    QT_AUTO_SCREEN_SCALE_FACTOR "1"
+    QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
+    QT_QPA_PLATFORMTHEME "qt5ct"
+    QT_STYLE_OVERRIDE "kvantum"
+    KVANTUM_THEME "ThinhSwissDark"
+}
+
 layout {
     // Set gaps around windows in logical pixels.
     gaps 10
@@ -182,7 +192,7 @@ layout {
         // of the workspace, rather than relative to just the window itself.
         // To do that, set relative-to="workspace-view".
         //
-        inactive-gradient from="#513d52" to="#44523d" angle=45 relative-to="workspace-view"
+        inactive-gradient from="#513d52" to="#434766" angle=45 relative-to="workspace-view"
     }
 
     // You can also add a border. It's similar to the focus ring, but always visible.
@@ -201,9 +211,9 @@ layout {
         // Gradients can use a few different interpolation color spaces.
         // For example, this is a pastel rainbow gradient via in="oklch longer hue".
         //
-        active-gradient from="#897fc9" to="#ffb4a2" angle=45 relative-to="workspace-view" in="oklch longer hue"
+        active-gradient from="#a7cdd9" to="#434766" angle=45 relative-to="workspace-view"
 
-        inactive-gradient from="#505050" to="#808080" angle=45 relative-to="workspace-view"
+        inactive-gradient from="#513d52" to="#434766" angle=45 relative-to="workspace-view"
     }
 
     // You can enable drop shadows for windows.
@@ -262,19 +272,33 @@ layout {
 // See the binds section below for more spawn examples.
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
-spawn-at-startup "waybar"
+// spawn-at-startup "waybar"
+spawn-at-startup "dbus-update-activation-environment" "--systemd" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP" "GTK_THEME" "QT_QPA_PLATFORMTHEME" "QT_STYLE_OVERRIDE" "KVANTUM_THEME" "QT_AUTO_SCREEN_SCALE_FACTOR" "QT_WAYLAND_DISABLE_WINDOWDECORATION"
+spawn-at-startup "gsettings" "set" "org.gnome.desktop.interface" "gtk-theme" "Thinh-Swiss-Dark"
+spawn-at-startup "gsettings" "set" "org.gnome.desktop.interface" "color-scheme" "prefer-dark"
 spawn-at-startup "hyprpaper"
+
+// Generate the Material 3 palette Theme.qml from the current wallpaper.
+// Runs after hyprpaper so the configured wallpaper is already known, and
+// again on every wallpaper change via the Wallpaper bind below.
+spawn-at-startup "python3" "/home/thinh/niri-config/quickshell/tools/palette.py"
+
 spawn-at-startup "udiskie &"
 spawn-at-startup "mako"
 spawn-at-startup "fcitx5"
-spawn-sh-at-startup "eww daemon"
-spawn-sh-at-startup "eww open thinh"
-spawn-sh-at-startup "eww open left"
-spawn-sh-at-startup "eww open right"
+
+// -x matches the process name exactly, so this can never match the sh process
+// that is running this very command (a `pkill -f` on the quickshell path does,
+// because niri puts the whole script into sh's argv, and kills itself before exec).
+spawn-at-startup "sh" "-c" "pkill -x quickshell >/dev/null 2>&1 || true; exec quickshell --path /home/thinh/niri-config/quickshell"
+
+// Alternative shell: Caelestia (installed under /opt/caelestia, built from
+// caelestia-dots/shell, GPL-3.0). Coexists with the in-repo shell above - only
+// one may run at a time. To switch, comment out the line above and uncomment:
+// spawn-at-startup "/home/thinh/.local/bin/caelestia-shell"
 
 
-// To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
-// spawn-sh-at-startup "qs -c ~/source/qs/MyAwesomeShell"
+// QuickShell is started above through a shell hook so config reloads replace stale instances.
 
 hotkey-overlay {
     // Uncomment this line to disable the "Important Hotkeys" pop-up at startup.
@@ -347,7 +371,7 @@ window-rule {
     // block-out-from "screencast"
 }
 overview {
-        backdrop-color "#101129"
+        backdrop-color "#000000"
     }
 
 // Example: enable rounded corners for all windows.
@@ -357,6 +381,31 @@ window-rule {
     clip-to-geometry true
 }
 
+// THIS IS THE MODIFIED BLOCK TARGETING ONLY KITTY
+window-rule {
+    match app-id=r#"^kitty$"#
+    
+    // 1. You must have some transparency to see the blur
+    opacity 0.8 
+    
+    // 2. Round the corners and clip it so the blur doesn't bleed out
+    geometry-corner-radius 12 
+    clip-to-geometry true
+    
+    // 3. Enable the blur effect
+    background-effect {
+        blur true
+        xray false // Change to true if you ONLY want to blur the wallpaper
+    }
+}
+
+// Optional: Tweak the intensity of the blur globally
+blur {
+    passes 3          // More passes = stronger blur (default: 3)
+    offset 3.0        // Sample distance per pass (default: 3.0)
+    noise 0.02        // Grain overlay (default: 0.02)
+    saturation 1.5    // Color saturation boost (default: 1.5)
+}
 binds {
     // Keys consist of modifiers separated by + signs, followed by an XKB key name
     // in the end. To find an XKB name for a particular key, you may use a program
@@ -376,6 +425,11 @@ binds {
     Mod+Q hotkey-overlay-title="Open a Terminal: kitty" { spawn "kitty"; }
     Mod+R hotkey-overlay-title="Run an Application: wofi" { spawn-sh "wofi --show drun"; }
     Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
+
+    Mod+Shift+R hotkey-overlay-title="Toggle Screen Recording" {
+        spawn-sh "/home/thinh/.local/bin/toggle-recording";
+    }
+
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
@@ -602,9 +656,18 @@ binds {
     // Mod+Space       { switch-layout "next"; }
     // Mod+Shift+Space { switch-layout "prev"; }
 
-    Print { screenshot; }
+    Print { spawn "flameshot" "gui";}
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
+
+    // Pick a new wallpaper and recolour the shell from it (Material You).
+    Super+Alt+W hotkey-overlay-title="Wallpaper and recolor shell" {
+        spawn-sh "/home/thinh/.local/bin/pick-wallpaper";
+    }
+    // Force a palette regeneration from the current wallpaper.
+    Super+Alt+P hotkey-overlay-title="Regenerate shell palette" {
+        spawn-sh "python3 /home/thinh/niri-config/quickshell/tools/palette.py --force";
+    }
 
     // Applications such as remote-desktop clients and software KVM switches may
     // request that niri stops processing the keyboard shortcuts defined here
@@ -623,4 +686,16 @@ binds {
     // Powers off the monitors. To turn them back on, do any input like
     // moving the mouse or pressing any other key.
     Mod+Shift+P { power-off-monitors; }
+
+
+    // BEGIN CHATGPT CLIPBOARD HISTORY
+    Ctrl+Mod+V hotkey-overlay-title="Clipboard History" {
+        spawn-sh "cliphist list | fuzzel --dmenu --prompt 'Clipboard> ' | cliphist decode | wl-copy"
+    }
+    // END CHATGPT CLIPBOARD HISTORY
 }
+
+// BEGIN CHATGPT CLIPBOARD HISTORY
+spawn-at-startup "sh" "-c" "pgrep -x wl-paste -a | grep -Fq -- '--type text --watch cliphist store' || exec wl-paste --type text --watch cliphist store"
+spawn-at-startup "sh" "-c" "pgrep -x wl-paste -a | grep -Fq -- '--type image --watch cliphist store' || exec wl-paste --type image --watch cliphist store"
+// END CHATGPT CLIPBOARD HISTORY

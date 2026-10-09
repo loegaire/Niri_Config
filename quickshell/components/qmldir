@@ -1,0 +1,25 @@
+module components
+
+BatteryWidget 1.0 BatteryWidget.qml
+VolumeWidget 1.0 VolumeWidget.qml
+BrightnessWidget 1.0 BrightnessWidget.qml
+NetworkWidget 1.0 NetworkWidget.qml
+WorkspacesWidget 1.0 WorkspacesWidget.qml
+ClockWidget 1.0 ClockWidget.qml
+MediaPlayerWidget 1.0 MediaPlayerWidget.qml
+SystemInfoWidget 1.0 SystemInfoWidget.qml
+WeatherWidget 1.0 WeatherWidget.qml
+QuoteWidget 1.0 QuoteWidget.qml
+NotesWidget 1.0 NotesWidget.qml
+PowerWidget 1.0 PowerWidget.qml
+CalendarWidget 1.0 CalendarWidget.qml
+ToggleButtonsWidget 1.0 ToggleButtonsWidget.qml
+ToggleGridWidget 1.0 ToggleGridWidget.qml
+ActionButtonsWidget 1.0 ActionButtonsWidget.qml
+AudioVisualizer 1.0 AudioVisualizer.qml
+ClipboardWidget 1.0 ClipboardWidget.qml
+SystemTrayWidget 1.0 SystemTrayWidget.qml
+SidebarPowerWidget 1.0 SidebarPowerWidget.qml
+SidebarTrayWidget 1.0 SidebarTrayWidget.qml
+SidebarTrayItemWidget 1.0 SidebarTrayItemWidget.qml
+JobsEditDialog 1.0 JobsEditDialog.qml
